@@ -4,7 +4,7 @@ const { Client } = require("pg");
 const database_name = "assignment_3_part_one"
 const readline = require("readline-sync");
 // connecting to the default database that comes with pgsql being 'postgres'
-const client = new Client({
+let client = new Client({
   user: "postgres",        // your postgres username
   host: "localhost",
   database: "postgres",      // default database that comes with pgsql
@@ -29,7 +29,7 @@ async function check_create_and_populate_database() {
                 user_decision = input.toLowerCase();
             }
             if(user_decision === "yes"){
-
+                create_and_populate_database();
             } else {
                 console.log("Program will now terminate without creating database.");
                 process.exit(0);
@@ -46,9 +46,38 @@ async function check_create_and_populate_database() {
     
 };
 async function create_and_populate_database() {
+    await client.query(`CREATE DATABASE ${database_name}`);
+     await client.end();
+client = new Client({
+  user: "postgres",        // your postgres username
+  host: "localhost",
+  database: database_name,     
+  password: process.env.database_password,  // for security reasons password of database should be kept in the env
+  port: 5432,
+});
 
+  await client.connect();
 
-    
+      await client.query(`
+    CREATE TABLE students (
+      student_id SERIAL PRIMARY KEY,
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      enrollment_date DATE
+    );
+  `);
+
+    await client.query(`
+INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
+('John', 'Doe', 'john.doe@example.com', '2023-09-01'),
+('Jane', 'Smith', 'jane.smith@example.com', '2023-09-01'),
+('Jim', 'Beam', 'jim.beam@example.com', '2023-09-02');
+  `);
+
+    console.log("Database have been created and populated with initial data");
+    await client.end();
+    process.exit(0);
 }
 
 check_create_and_populate_database();
