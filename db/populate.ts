@@ -1,17 +1,27 @@
+// load env variables from the .env file
 require('dotenv').config();
 
 const { Client } = require("pg");
-const database_name = "assignment_3_part_one"
+
+// name of database we want for the assignment
+const database_name = process.env.database_name; 
+
 const readline = require("readline-sync");
-// connecting to the default database that comes with pgsql being 'postgres'
+
+// we are first going to connect to the default postgres database to see 
+// if our desired database for the assignment is in there, and if not create it
 let client = new Client({
-  user: "postgres",        // your postgres username
+  user: "postgres",        
   host: "localhost",
   database: "postgres",      // default database that comes with pgsql
   password: process.env.database_password,  // for security reasons password of database should be kept in the env
   port: 5432,
 });
 
+/*
+This function connects to postgres and checks if our assignment DB exists.
+If not, we ask the user if we can create it. If yes, we create and populate it.
+*/
 async function check_create_and_populate_database() {
     await client.connect();
 
@@ -45,6 +55,11 @@ async function check_create_and_populate_database() {
 
     
 };
+
+/*
+This function creates the database, reconnects into it,
+creates the students table, and inserts the initial data.
+*/
 async function create_and_populate_database() {
     await client.query(`CREATE DATABASE ${database_name}`);
      await client.end();
@@ -75,7 +90,7 @@ INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
 ('Jim', 'Beam', 'jim.beam@example.com', '2023-09-02');
   `);
 
-    console.log("Database have been created and populated with initial data");
+    console.log("Database has been created and populated with initial data");
     await client.end();
     process.exit(0);
 }

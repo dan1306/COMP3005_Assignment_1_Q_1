@@ -1,27 +1,13 @@
-require('dotenv').config();
-
+// package for taking in terminal inputs
 const readline = require("readline-sync");
 
-interface addStudent {
-  first_name: string; 
-  last_name: string; 
-  email: string; 
-  enrollment_date: Date;
-}
-
-// while (true) {
-//   const input = readline.question("Enter something (or type exit): ");
-
-//   if (input === "exit") {
-//     console.log("Goodbye!");
-//     process.exit(0);
-//   }
-
-//   console.log("You typed:", input);
-// }
-
+// connection for PostgreSQL queries
 const { pool } = require("./db/index");
 
+/*
+The function main is the main loop for the program
+which maps user choices to their designated CRUD operations.
+*/
 async function main() {
   
   while(1){
@@ -47,18 +33,21 @@ async function main() {
         break;
       case "3":
         let student_id_update = readline.question("Input Student Id:\n");
-        let new_email_update =  readline.question("Enter student email in format 'jane@example.com'.\n");
+        student_id_update = student_id_update.trim();
+
         if(checkForPositiveWholeNumbers(student_id_update) === false){
-          console.log(`Student ID provided is not a valid number.`);
-          let regex_for_validating_emails = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-          if(!regex_for_validating_emails.test(new_email_update)){
-            console.log("Invalid email format.\n");
-          }
-        } else{
-          console.log(`Updating student email with ID ${student_id_update}`); 
-          await updateStudentEmail(Number(student_id_update), new_email_update);
+          console.log(`Student ID provided is not a valid number.\n`);
+          break;
         }
- 
+
+        let new_email_update =  readline.question("Enter student email in format 'jane@example.com'.\n");
+        if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(new_email_update)){
+          console.log("Invalid email format.\n");
+          break;
+        }
+
+        console.log(`Updating student email with ID ${student_id_update}`);
+        await updateStudentEmail(Number(student_id_update), new_email_update);
         break;
       case "4":
         let student_id = readline.question("Input Student Id:\n");
@@ -71,6 +60,7 @@ async function main() {
         break;
       case "5":
         console.log("Ending program.");
+        await pool.end();
         return;
       default:
         console.log("Invalid Option");
@@ -80,23 +70,24 @@ async function main() {
 
 }
 
-
+/* 
+Gets and shows all student data in a formatted display
+*/
 async function getAllStudents(){
   const result = await pool.query("SELECT * FROM students;");
   
   for (let i of result.rows) {
     console.log(
-      `\nStudent ID: ${i.student_id} \n
-      First Name: ${i.first_name} \n 
-      Last Name: ${i.last_name} \n
-      Email: ${i.email} \n 
-      Enrollment Date: ${i.enrollment_date.toISOString().split('T')[0]}\n`
+      `\nStudent ID: ${i.student_id} | First Name: ${i.first_name} | Last Name: ${i.last_name} | Email: ${i.email} | Enrollment Date: ${i.enrollment_date.toISOString().split('T')[0]}\n`
     );
     // console.log(i.enrollment_date.toISOString().split('T')[0]);
   }
 
 }
 
+/* 
+Validates user inputs and adds new student in database.
+*/
 async function addStudent(first_name: string, last_name: string, email: string, enrollment_date: string) {
   let regex_for_validating_emails = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   let regex_for_validating_date =  /^\d{4}-\d{2}-\d{2}$/;
@@ -121,11 +112,15 @@ async function addStudent(first_name: string, last_name: string, email: string, 
   }
 }
 
+/* 
+Returns the boolean true only when the provided student ID by the user
+is a positive whole number.
+*/
 function checkForPositiveWholeNumbers(id: string): boolean{
   if(id == ''){
     return false;
   }
-  id = id.trim();
+
   let turnIdStrToInt: number = Number(id);
   if(Number.isInteger(turnIdStrToInt) && turnIdStrToInt >= 0){
     return true
@@ -133,6 +128,9 @@ function checkForPositiveWholeNumbers(id: string): boolean{
   return false;
 }
 
+/* 
+Retrieves all student IDs to aid in validation in update and delete.
+*/
 async function getAllStudentIDS(): Promise<number[]>{
  const result = await pool.query("SELECT * FROM students;");
   let returnArray: number[] = [];
@@ -141,10 +139,14 @@ async function getAllStudentIDS(): Promise<number[]>{
   }
   return returnArray;
 }
+
+/* 
+Updates student email provided that the Student ID exist in the database.
+*/
 async function updateStudentEmail(student_id: number, new_email: string) {
   let idArray: number[] = await getAllStudentIDS();
   if(!idArray.includes(student_id)){
-    console.log(idArray);
+    // console.log(idArray);
       console.log(`Student ID ${student_id} does not exist in the database.\n`);
       return
   };
@@ -160,10 +162,13 @@ async function updateStudentEmail(student_id: number, new_email: string) {
   }
 } 
 
+/* 
+Deletes student data depending on if the provided Student ID exists.
+*/
 async function deleteStudent(student_id: number){
   let idArray: number[] = await getAllStudentIDS();
   if(!idArray.includes(student_id)){
-    console.log(idArray);
+    // console.log(idArray);
       console.log(`Student ID ${student_id} does not exist in the database.\n`);
       return
   };
