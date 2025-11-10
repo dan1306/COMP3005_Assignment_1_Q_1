@@ -3,7 +3,7 @@
 This is a TypeScript, terminal based application that connects to PostgreSQL and allows the user to perform CRUD operations on data in a Postgres database table. 
 
 The user can list all students, add a student, update a student email, delete a student, and lastly exit the program.
-# Prerequisites (Must be installed and running before running before moving further on into the README)
+# Prerequisites (Must be installed and running before moving further on into this README)
 Node.js and npm installed (https://nodejs.org)
 PostgreSQL installed and running pgAdmin is also a good addition
 
