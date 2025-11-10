@@ -4,8 +4,9 @@ This is a TypeScript, terminal based application that connects to PostgreSQL and
 
 The user can list all students, add a student, update a student email, delete a student, and lastly exit the program.
 # Prerequisites (Must be installed and running before moving further on into this README)
-Node.js and npm installed (https://nodejs.org)
-PostgreSQL installed and running pgAdmin is also a good addition
+1) Node.js and npm installed (https://nodejs.org)
+
+2) PostgreSQL installed and running pgAdmin is also a good addition
 
 ## How to Install and Run
 1) Clone repo:
